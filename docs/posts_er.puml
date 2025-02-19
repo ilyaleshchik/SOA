@@ -1,0 +1,45 @@
+@startuml
+!define Table(name,desc) class name as "desc" << (T,white) >>
+!define primary_key(x) <u>x</u>
+!define foreign_key(x) <color:red>x</color>
+
+Table(account, "accounts") {
+    +primary_key(id) : uint32
+    +username : varchar
+    +password : varchar
+    +created_at: datetime
+    +special_status: int
+}
+
+Table(post, "Post") {
+    +primary_key(id) : UUID
+    +foreign_key(user_id) : uint32
+    +title : varchar
+    +body : text
+    +foreign_key(media_id): UUID
+    +updated_at: timestamp 
+}
+
+Table(comment, "Comment") {
+    +primary_key(id) : UUID
+    +foreign_key(post_id) : UUID
+    +foreign_key(user_id) : uint32
+    +text : text
+    +foreign_key(reply_id): UUID
+    +created_at : datetime
+}
+
+Table(media, "Media") {
+  +primary_key(id): UUID
+  +original: varchar
+  +preview: varchar
+  +foreign_key(owner_id): uint32
+  +thumbnail: varchar
+}
+
+account ||--o{ post : "has"
+post ||--o{ comment : "has"
+post ||--|{ media : "has"
+
+
+@enduml

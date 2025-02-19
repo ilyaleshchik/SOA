@@ -1,0 +1,31 @@
+
+
+
+model {
+    User = actor 'person' {
+        description 'The regular user of social network'
+    }
+
+    sn = system 'Social Network' {
+        description 'Social Network App\n[REST API]'
+    }
+
+    User -> sn 'Uses'
+}
+
+
+views {
+
+  view context_view {
+    title 'Context view'
+
+    include User, sn
+  }
+
+
+  view of sn {
+    title 'container view'
+
+    include person, apiClient,accountsService, accountsDb, postService, postsDb, statsService, statsDb, kafka, cdn
+  }
+}

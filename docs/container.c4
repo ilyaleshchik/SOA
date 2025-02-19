@@ -1,0 +1,63 @@
+// Tutorial:
+// https://likec4.dev/tutorial/
+
+specification {
+  element actor
+  element system
+  element db
+  element component
+}
+
+model {
+  person = actor 'person' {
+    description 'The regular customer of the system'
+  }
+
+  apiClient = system 'Api' {
+    description '[CONTAINER]\nApi с которым общается UI\n REST API'
+  }
+
+  accountsService = system '[CONTAINER]\nAccounts Service' {
+    description 'сервис аккаунтов'
+  }
+
+  accountsDb = db 'Accounts Database' {
+    description 'Postgres'
+  }
+
+  postService = system '[CONTAINER]\nPosts Service' {
+    description 'сервис постов'
+  }
+
+  postsDb = db 'Posts Database' {
+    description 'Postgres'
+  }
+
+  statsService = system '[CONTAINER]\nStatistics Service' {
+    description 'сервис статистики'
+  }
+
+  statsDb = db 'StatisticsDatabase' {
+    description 'ClickHouse'
+  }
+
+  kafka = db 'Broker' {
+    description 'Kafka'
+  }
+
+  cdn = db 'CDN' {
+    description 'Minio'
+  }
+
+  person -> apiClient 'HTTP'
+  apiClient -> accountsService 'HTTP'
+  accountsService -> accountsDb 'Read/Write/Update'
+  apiClient -> postService 'HTTP'
+  postService -> postsDb 'Read/Write/Update'
+  apiClient -> statsService 'HTTP'
+  statsService -> statsDb 'Read/Write/Update'
+  apiClient -> kafka 'produce'
+  statsService -> kafka  'consume'
+  postService -> cdn 'Upload'
+}
+
