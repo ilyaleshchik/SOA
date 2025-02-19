@@ -1,0 +1,44 @@
+@startuml
+!define Table(name,desc) class name as "desc" << (T,white) >>
+!define primary_key(x) <u>x</u>
+!define foreign_key(x) <color:red>x</color>
+
+
+Table(post, "Post") {
+    +primary_key(id) : UUID
+    +foreign_key(user_id) : uint32
+    +title : varchar
+    +body : text
+    +foreign_key(media_id): UUID
+    +updated_at: timestamp 
+}
+
+Table(statistic, "Statistic") {
+    +primary_key(id) : int
+    +foreign_key(post_id) : UUID
+    +foreign_key(likes) : []UUID
+    +views: []UUID
+    +comments_cnt: int32
+}
+
+Table(like, "Like") {
+    +primary_key(id) : UUID
+    +foreign_key(post_id) : int
+    +foreign_key(user_id) : int
+    +created_at : datetime
+}
+
+Table(view, "Views") {
+  +primary_key(id): UUID
+  +foreign_key(post_id): UUID
+  +foreign_key(user_id): uint32
+  +created_at: datetime
+}
+
+post ||--|{ statistic : "has"
+statistic ||--o{ like : "has"
+statistic ||--o{ view: "has"
+
+
+
+@enduml
