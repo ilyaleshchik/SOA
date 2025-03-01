@@ -1,0 +1,31 @@
+@startuml
+!define Table(name,desc) class name as "desc" << (T,white) >>
+!define primary_key(x) <u>x</u>
+!define foreign_key(x) <color:red>x</color>
+
+Table(account, "accounts") {
+    +primary_key(id) : uint32
+    +username : varchar
+    +password : varchar
+    +created_at: datetime
+    +special_status: int
+}
+
+Table(account_profile, "account_profiles") {
+    +primary_key(id): UUID
+    +foreign_key(account_id): uint32
+    +bio: text
+    +name: varchar
+    +background_color: text
+}
+
+Table(account_token, "account_tokens") {
+  +foreign_key(account_id) : uint32
+  +token: varchar
+  +EAT: timestamp
+}
+
+account ||--|{ account_profile : "has"
+account ||--|{ account_token : "has"
+
+@enduml
