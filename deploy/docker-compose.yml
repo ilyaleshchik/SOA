@@ -1,0 +1,31 @@
+services:
+  postgres:
+    image: postgis/postgis:15-master
+    container_name: postgres
+    environment:
+      POSTGRES_USER: lolfucjj
+      POSTGRES_PASSWORD: lolfucjj
+      PGDATA: /data/postgres
+    ports:
+      - "5432:5432"
+
+  accounts_service:
+    build:
+      context: ..
+      dockerfile: cmd/accounts_service/Dockerfile
+    container_name: accounts_service
+    depends_on:
+      - postgres
+    ports:
+      - "8081:8081"
+
+  api_service:
+    build:
+      context: ..
+      dockerfile: cmd/api_service/Dockerfile
+    container_name: api_service
+    depends_on:
+      - postgres
+      - accounts_service
+    ports:
+      - "8082:8082"
