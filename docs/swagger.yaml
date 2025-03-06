@@ -1,0 +1,202 @@
+basePath: /api
+definitions:
+  api.AccountProfile:
+    properties:
+      bio:
+        type: string
+      birth_date:
+        type: string
+      email:
+        type: string
+      last_name:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+      username:
+        type: string
+    type: object
+  api.AccountRegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  api.LoginRequest:
+    properties:
+      password:
+        type: string
+      username:
+        type: string
+    type: object
+  api.UpdateAccountProfileRequest:
+    properties:
+      birtday:
+        type: string
+      email:
+        type: string
+      last_name:
+        type: string
+      name:
+        type: string
+      phone:
+        type: string
+    type: object
+info:
+  contact: {}
+  description: API for manging accounts
+  title: register account API
+  version: "1.0"
+paths:
+  /account/{account_id}:
+    get:
+      consumes:
+      - application/json
+      description: Fetches account profile details
+      parameters:
+      - description: Account ID
+        in: path
+        name: account_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.AccountProfile'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get account profile
+      tags:
+      - account
+  /account/profile:
+    patch:
+      consumes:
+      - application/json
+      description: Modifies the account profile details
+      parameters:
+      - description: Update Account Profile Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.UpdateAccountProfileRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update account profile
+      tags:
+      - account
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Authenticates user and returns JWT session token
+      parameters:
+      - description: Login Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Login to account
+      tags:
+      - account
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new account with username, email, and password
+      parameters:
+      - description: Account Register Request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.AccountRegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Register an account
+      tags:
+      - account
+securityDefinitions:
+  Bearer:
+    description: 'Enter the token with the `Bearer: ` prefix.'
+    in: header
+    name: Auth
+    type: apiKey
+swagger: "2.0"

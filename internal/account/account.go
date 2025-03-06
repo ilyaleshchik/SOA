@@ -51,5 +51,5 @@ func GetAccountByUsername(db *gorm.DB, username string) (*Account, error) {
 }
 
 func SaveAccount(db *gorm.DB, account *Account) error {
-	return db.Save(&account).Error
+	return db.Create(&account).Error
 }

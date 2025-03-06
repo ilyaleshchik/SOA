@@ -12,6 +12,17 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+// registerAccount registers a new account
+// @Summary Register an account
+// @Description Creates a new account with username, email, and password
+// @Tags account
+// @Accept  json
+// @Produce  json
+// @Param request body api.AccountRegisterRequest true "Account Register Request"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /register [post]
 func (s *Server) registerAccount(c *gin.Context) error {
 
 	req := api.AccountRegisterRequest{}
@@ -19,6 +30,27 @@ func (s *Server) registerAccount(c *gin.Context) error {
 	if err := c.BindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"status": "wrong format of request",
+		})
+		return nil
+	}
+
+	if req.Email == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": "bad email",
+		})
+		return nil
+	}
+
+	if req.Username == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": "bad username",
+		})
+		return nil
+	}
+
+	if req.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": "bad password",
 		})
 		return nil
 	}
@@ -64,6 +96,17 @@ func (s *Server) registerAccount(c *gin.Context) error {
 	return nil
 }
 
+// login logs in an existing user
+// @Summary Login to account
+// @Description Authenticates user and returns JWT session token
+// @Tags account
+// @Accept  json
+// @Produce  json
+// @Param request body api.LoginRequest true "Login Request"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /login [post]
 func (s *Server) login(c *gin.Context) error {
 	var req api.LoginRequest
 
@@ -72,7 +115,16 @@ func (s *Server) login(c *gin.Context) error {
 	}
 
 	if req.Username == "" {
-		c.JSON(http.StatusBadRequest, gin.H{})
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": "empty username",
+		})
+		return nil
+	}
+
+	if req.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"status": "empty password",
+		})
 		return nil
 	}
 
@@ -95,8 +147,7 @@ func (s *Server) login(c *gin.Context) error {
 
 	if err := tools.IsSamePass([]byte(req.Password), []byte(acc.Password)); err != nil {
 		c.JSON(http.StatusForbidden, gin.H{
-			"pass":     string(hashedPassword),
-			"acc.Pass": acc.Password,
+			"status": "wrong password",
 		})
 		return nil
 	}
@@ -112,6 +163,17 @@ func (s *Server) login(c *gin.Context) error {
 	return nil
 }
 
+// getAccountProfile retrieves the profile of an account
+// @Summary Get account profile
+// @Description Fetches account profile details
+// @Tags account
+// @Accept  json
+// @Produce  json
+// @Param account_id path int true "Account ID"
+// @Success 200 {object} api.AccountProfile
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Router /account/{account_id} [get]
 func (s *Server) getAccountProfile(c *gin.Context) error {
 
 	reqID, err := strconv.ParseInt(c.Param("account_id"), 10, 64)
@@ -145,6 +207,17 @@ func (s *Server) getAccountProfile(c *gin.Context) error {
 	return nil
 }
 
+// updateAccountProfile updates the profile of the logged-in user
+// @Summary Update account profile
+// @Description Modifies the account profile details
+// @Tags account
+// @Accept  json
+// @Produce  json
+// @Param request body api.UpdateAccountProfileRequest true "Update Account Profile Request"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Router /account/profile [patch]
 func (s *Server) updateAccountProfile(c *gin.Context) error {
 
 	account := c.MustGet("account").(*acc.Account)

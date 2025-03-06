@@ -16,6 +16,15 @@ import (
 	"gorm.io/gorm/logger"
 )
 
+// @title register account API
+// @version 1.0
+// @description API for manging accounts
+// @BasePath /api
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Auth
+// @description Enter the token with the `Bearer: ` prefix.
+
 type Server struct {
 	db         *gorm.DB
 	jwtPrivate *rsa.PrivateKey
