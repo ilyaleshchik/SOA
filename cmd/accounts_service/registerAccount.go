@@ -220,7 +220,16 @@ func (s *Server) getAccountProfile(c *gin.Context) error {
 // @Router /account/profile [patch]
 func (s *Server) updateAccountProfile(c *gin.Context) error {
 
-	account := c.MustGet("account").(*acc.Account)
+	accountID, err := strconv.ParseInt(c.GetHeader("accountID"), 10, 64)
+	if err != nil {
+		return err
+	}
+
+	account, err := acc.GetAccountByID(s.db, acc.AccountID(accountID))
+	if err != nil {
+		return err
+	}
+
 	accProfile, err := acc.GetOrCreateAccountProfile(s.db, account.ID)
 
 	if err != nil {
