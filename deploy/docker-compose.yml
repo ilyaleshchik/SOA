@@ -18,6 +18,16 @@ services:
       - postgres
     ports:
       - "8081:8081"
+      
+  posts_service:
+    build:
+      context: ..
+      dockerfile: cmd/posts_service/Dockerfile
+    container_name: posts_service
+    depends_on:
+      - postgres
+    ports:
+      - "8082:8082"
 
   api_service:
     build:
@@ -27,5 +37,6 @@ services:
     depends_on:
       - postgres
       - accounts_service
+      - posts_service
     ports:
-      - "8082:8082"
+      - "8083:8083"

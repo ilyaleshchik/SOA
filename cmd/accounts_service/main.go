@@ -21,7 +21,7 @@ func main() {
 	server := NewServer()
 	loadConfig()
 	server.InitDB()
-	server.InitJWT()
+	server.InitJWTManager()
 
 	go server.runWWW()
 
