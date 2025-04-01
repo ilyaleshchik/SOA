@@ -33,6 +33,10 @@ func (p *Post) ForApi() *api.Post {
 }
 
 func (p *Post) ParseTags() error {
+	if p.Tags == nil {
+		p.ParsedTags = make([]string, 0)
+		return nil
+	}
 	err := json.Unmarshal(p.Tags, &p.ParsedTags)
 	if err != nil {
 		return err

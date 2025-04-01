@@ -1,13 +1,11 @@
 package main
 
 import (
-	"crypto/rsa"
-	"os"
 	acc "soa-hw-ilyaleshchyk/internal/account"
+	"soa-hw-ilyaleshchyk/internal/tools"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -25,12 +23,13 @@ import (
 
 type Server struct {
 	db         *gorm.DB
-	jwtPrivate *rsa.PrivateKey
-	jwtPublic  *rsa.PublicKey
+	jwtManager *tools.JWTManager
 }
 
 func NewServer() *Server {
-	return &Server{}
+	return &Server{
+		jwtManager: &tools.JWTManager{},
+	}
 }
 
 func (s *Server) runWWW() {
@@ -93,42 +92,7 @@ func (s *Server) InitDB() {
 	}
 }
 
-func (s *Server) InitJWT() {
-	private, err := os.ReadFile(config.PrivateSecret)
-	if err != nil {
-		logrus.Panic(err.Error() + config.PrivateSecret + "--------")
-	}
-
-	public, err := os.ReadFile(config.PublicSecret)
-	if err != nil {
-		logrus.Panic(err.Error() + config.PublicSecret)
-	}
-
-	s.jwtPrivate, err = jwt.ParseRSAPrivateKeyFromPEM(private)
-	if err != nil {
-		logrus.Panic(err)
-	}
-
-	s.jwtPublic, err = jwt.ParseRSAPublicKeyFromPEM(public)
-	if err != nil {
-		logrus.Panic(err)
-	}
-}
-
-func (s *Server) genJWT(username string) (string, error) {
-
-	claims := jwt.MapClaims{
-		"username": username,
-		"iat":      time.Now().Unix(),
-		"exp":      time.Now().Add(time.Hour * 12).Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-
-	signedToken, err := token.SignedString(s.jwtPrivate)
-	if err != nil {
-		return "", err
-	}
-
-	return signedToken, nil
+func (s *Server) InitJWTManager() {
+	s.jwtManager.InitDB(config.DB, config.DBDebug)
+	s.jwtManager.InitJWT(config.PrivateSecret, config.PublicSecret)
 }

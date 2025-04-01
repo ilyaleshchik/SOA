@@ -1,4 +1,4 @@
-package main
+package tools
 
 import (
 	"crypto/rsa"
@@ -24,15 +24,15 @@ type JWTManager struct {
 	db         *gorm.DB
 }
 
-func (j *JWTManager) InitJWT() {
-	private, err := os.ReadFile(config.PrivateSecret)
+func (j *JWTManager) InitJWT(privSecret, publicSecret string) {
+	private, err := os.ReadFile(privSecret)
 	if err != nil {
-		logrus.Panic(err.Error() + config.PrivateSecret + "--------")
+		logrus.Panic(err.Error() + privSecret + "--------")
 	}
 
-	public, err := os.ReadFile(config.PublicSecret)
+	public, err := os.ReadFile(publicSecret)
 	if err != nil {
-		logrus.Panic(err.Error() + config.PublicSecret)
+		logrus.Panic(err.Error() + publicSecret)
 	}
 
 	j.jwtPrivate, err = jwt.ParseRSAPrivateKeyFromPEM(private)
@@ -46,7 +46,7 @@ func (j *JWTManager) InitJWT() {
 	}
 }
 
-func (s *JWTManager) checkJwt(c *gin.Context) {
+func (s *JWTManager) CheckJwt(c *gin.Context) {
 
 	jwtSession := c.GetHeader("Auth")
 
@@ -91,7 +91,7 @@ func (s *JWTManager) checkJwt(c *gin.Context) {
 	c.Header("accountID", strconv.FormatInt(int64(account.ID), 10))
 }
 
-func (s *JWTManager) InitDB() {
+func (s *JWTManager) InitDB(db string, dbDebug bool) {
 	var err error
 
 	cfg := &gorm.Config{
@@ -99,11 +99,11 @@ func (s *JWTManager) InitDB() {
 		PrepareStmt:            true,
 	}
 
-	if config.DBDebug {
+	if dbDebug {
 		cfg.Logger = logger.Default.LogMode(logger.Info)
 	}
 
-	s.db, err = gorm.Open(postgres.Open(config.DB), cfg)
+	s.db, err = gorm.Open(postgres.Open(db), cfg)
 	if err != nil {
 		logrus.Panic("failed to connect database:", err)
 	}
@@ -115,4 +115,21 @@ func (s *JWTManager) InitDB() {
 
 	sqlDB.SetConnMaxIdleTime(10 * time.Minute)
 	sqlDB.SetConnMaxLifetime(10 * time.Minute)
+}
+
+func (j *JWTManager) GenJWT(username string) (string, error) {
+	claims := jwt.MapClaims{
+		"username": username,
+		"iat":      time.Now().Unix(),
+		"exp":      time.Now().Add(time.Hour * 12).Unix(),
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
+
+	signedToken, err := token.SignedString(j.jwtPrivate)
+	if err != nil {
+		return "", err
+	}
+
+	return signedToken, nil
 }

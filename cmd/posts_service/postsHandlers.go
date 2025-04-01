@@ -12,6 +12,16 @@ import (
 	"github.com/google/uuid"
 )
 
+// @Summary Create a new post
+// @Description Creates a new post with the provided details
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param request body api.CreatePost true "Post data"
+// @Success 200 {object} api.Post
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 500 {object} map[string]string "Internal error"
+// @Router /posts/create [post]
 func (s *Server) createPost(c *gin.Context) error {
 
 	var req api.CreatePost
@@ -57,6 +67,15 @@ func (s *Server) createPost(c *gin.Context) error {
 	return nil
 }
 
+// @Summary Delete a post
+// @Description Deletes a post by its ID
+// @Tags posts
+// @Produce json
+// @Param post_id path string true "Post ID"
+// @Success 204 "No Content"
+// @Failure 404 {object} map[string]string "Not Found"
+// @Failure 500 {object} map[string]string "Internal error"
+// @Router /posts/{post_id} [delete]
 func (s *Server) deletePost(c *gin.Context) error {
 
 	postID, err := uuid.Parse(c.Param("post_id"))
@@ -82,6 +101,18 @@ func (s *Server) deletePost(c *gin.Context) error {
 	return err
 }
 
+// @Summary Update a post
+// @Description Updates the details of an existing post
+// @Tags posts
+// @Accept json
+// @Produce json
+// @Param post_id path string true "Post ID"
+// @Param request body api.PostUpdate true "Updated post data"
+// @Success 200 {object} api.Post
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 404 {object} map[string]string "Not Found"
+// @Failure 500 {object} map[string]string "Internal error"
+// @Router /posts/{post_id} [patch]
 func (s *Server) updatePost(c *gin.Context) error {
 
 	req := api.PostUpdate{}
@@ -147,6 +178,15 @@ func (s *Server) updatePost(c *gin.Context) error {
 	return nil
 }
 
+// @Summary Get a single post
+// @Description Retrieves details of a specific post
+// @Tags posts
+// @Produce json
+// @Param post_id path string true "Post ID"
+// @Success 200 {object} api.Post
+// @Failure 404 {object} map[string]string "Not Found"
+// @Failure 500 {object} map[string]string "Internal error"
+// @Router /posts/{post_id} [get]
 func (s *Server) getPost(c *gin.Context) error {
 
 	postID, err := uuid.Parse(c.Param("post_id"))
@@ -170,6 +210,18 @@ func (s *Server) getPost(c *gin.Context) error {
 	return nil
 }
 
+// @Summary Get multiple posts
+// @Description Retrieves a paginated list of posts
+// @Tags posts
+// @Produce json
+// @Param owner_id path string true "Owner ID"
+// @Param accountID header string true "Viewer Account ID"
+// @Param limit query int false "Limit"
+// @Param prev_id query string false "Previous Post ID"
+// @Success 200 {object} map[string]string "{total_count: int, posts: []api.Post}"
+// @Failure 400 {object} map[string]string "Bad request"
+// @Failure 500 {object} map[string]string "Internal error"
+// @Router /account/posts/{owner_id} [get]
 func (s *Server) getPosts(c *gin.Context) error {
 
 	accountID, err := strconv.ParseInt(c.GetHeader("accountID"), 10, 64)

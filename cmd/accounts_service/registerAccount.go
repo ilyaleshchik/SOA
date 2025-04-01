@@ -85,7 +85,7 @@ func (s *Server) registerAccount(c *gin.Context) error {
 		return err
 	}
 
-	session, err := s.genJWT(newAcc.Username)
+	session, err := s.jwtManager.GenJWT(newAcc.Username)
 
 	if err != nil {
 		return err
@@ -152,7 +152,7 @@ func (s *Server) login(c *gin.Context) error {
 		return nil
 	}
 
-	session, err := s.genJWT(acc.Username)
+	session, err := s.jwtManager.GenJWT(acc.Username)
 
 	if err != nil {
 		return err

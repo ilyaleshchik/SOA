@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"soa-hw-ilyaleshchyk/internal/tools"
 
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
@@ -39,13 +40,13 @@ func runWWW(bind string) {
 	www.RedirectTrailingSlash = true
 	www.RedirectFixedPath = true
 
-	jwtManager := &JWTManager{}
-	jwtManager.InitDB()
-	jwtManager.InitJWT()
+	jwtManager := &tools.JWTManager{}
+	jwtManager.InitDB(config.DB, config.DBDebug)
+	jwtManager.InitJWT(config.PrivateSecret, config.PublicSecret)
 
 	api := www.Group("/api/")
 
-	apiAuth := api.Group("", jwtManager.checkJwt)
+	apiAuth := api.Group("", jwtManager.CheckJwt)
 
 	{
 		// account service
