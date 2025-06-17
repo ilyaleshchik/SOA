@@ -1,4 +1,3 @@
-basePath: /api
 definitions:
   api.AccountProfile:
     properties:
@@ -26,12 +25,57 @@ definitions:
       username:
         type: string
     type: object
+  api.CreatePost:
+    properties:
+      description:
+        type: string
+      is_private:
+        type: boolean
+      name:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
   api.LoginRequest:
     properties:
       password:
         type: string
       username:
         type: string
+    type: object
+  api.Post:
+    properties:
+      date_create:
+        type: integer
+      description:
+        type: string
+      id:
+        type: string
+      is_private:
+        type: boolean
+      name:
+        type: string
+      owner_id:
+        type: integer
+      tags:
+        items:
+          type: string
+        type: array
+    type: object
+  api.PostUpdate:
+    properties:
+      description:
+        type: string
+      is_private:
+        type: boolean
+      name:
+        type: string
+      tags:
+        items:
+          type: string
+        type: array
     type: object
   api.UpdateAccountProfileRequest:
     properties:
@@ -48,9 +92,8 @@ definitions:
     type: object
 info:
   contact: {}
-  description: API for manging accounts
-  title: register account API
-  version: "1.0"
+  title: api
+  version: 1.4.88
 paths:
   /account/{account_id}:
     get:
@@ -85,6 +128,52 @@ paths:
       summary: Get account profile
       tags:
       - account
+  /account/posts/{owner_id}:
+    get:
+      description: Retrieves a paginated list of posts
+      parameters:
+      - description: Owner ID
+        in: path
+        name: owner_id
+        required: true
+        type: string
+      - description: Viewer Account ID
+        in: header
+        name: accountID
+        required: true
+        type: string
+      - description: Limit
+        in: query
+        name: limit
+        type: integer
+      - description: Previous Post ID
+        in: query
+        name: prev_id
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: '{total_count: int, posts: []api.Post}'
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get multiple posts
+      tags:
+      - posts
   /account/profile:
     patch:
       consumes:
@@ -157,6 +246,143 @@ paths:
       summary: Login to account
       tags:
       - account
+  /posts/{post_id}:
+    delete:
+      description: Deletes a post by its ID
+      parameters:
+      - description: Post ID
+        in: path
+        name: post_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Delete a post
+      tags:
+      - posts
+    get:
+      description: Retrieves details of a specific post
+      parameters:
+      - description: Post ID
+        in: path
+        name: post_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Post'
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Get a single post
+      tags:
+      - posts
+    patch:
+      consumes:
+      - application/json
+      description: Updates the details of an existing post
+      parameters:
+      - description: Post ID
+        in: path
+        name: post_id
+        required: true
+        type: string
+      - description: Updated post data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.PostUpdate'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Post'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "404":
+          description: Not Found
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Update a post
+      tags:
+      - posts
+  /posts/create:
+    post:
+      consumes:
+      - application/json
+      description: Creates a new post with the provided details
+      parameters:
+      - description: Post data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/api.CreatePost'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/api.Post'
+        "400":
+          description: Bad request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create a new post
+      tags:
+      - posts
   /register:
     post:
       consumes:
@@ -193,10 +419,4 @@ paths:
       summary: Register an account
       tags:
       - account
-securityDefinitions:
-  Bearer:
-    description: 'Enter the token with the `Bearer: ` prefix.'
-    in: header
-    name: Auth
-    type: apiKey
 swagger: "2.0"

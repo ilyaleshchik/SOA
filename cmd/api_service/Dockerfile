@@ -15,5 +15,7 @@ FROM golang:1.24
 
 WORKDIR /app
 COPY --from=builder /src/cmd/api_service ./
+COPY --from=builder /src/signature.pem ./
+COPY --from=builder /src/signature.pub ./
 
 CMD ["/app/api_service"]

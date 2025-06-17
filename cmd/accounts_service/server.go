@@ -1,15 +1,11 @@
 package main
 
 import (
-	"crypto/rsa"
-	"fmt"
-	"net/http"
-	"os"
 	acc "soa-hw-ilyaleshchyk/internal/account"
+	"soa-hw-ilyaleshchyk/internal/tools"
 	"time"
 
 	"github.com/gin-gonic/gin"
-	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -27,12 +23,13 @@ import (
 
 type Server struct {
 	db         *gorm.DB
-	jwtPrivate *rsa.PrivateKey
-	jwtPublic  *rsa.PublicKey
+	jwtManager *tools.JWTManager
 }
 
 func NewServer() *Server {
-	return &Server{}
+	return &Server{
+		jwtManager: &tools.JWTManager{},
+	}
 }
 
 func (s *Server) runWWW() {
@@ -51,13 +48,9 @@ func (s *Server) runWWW() {
 	{
 		api.POST("/account/register", wwwHandler(s.registerAccount))
 		api.POST("/account/login", wwwHandler(s.login))
-	}
 
-	apiAuth := api.Group("", s.checkJwt)
-
-	{
-		apiAuth.GET("/account/:account_id/profile", wwwHandler(s.getAccountProfile))
-		apiAuth.PATCH("/account/profile", wwwHandler(s.updateAccountProfile))
+		api.GET("/account/:account_id/profile", wwwHandler(s.getAccountProfile))
+		api.PATCH("/account/profile", wwwHandler(s.updateAccountProfile))
 	}
 
 	logrus.Infof("Application starting on addres: %s", config.Bind)
@@ -99,87 +92,7 @@ func (s *Server) InitDB() {
 	}
 }
 
-func (s *Server) InitJWT() {
-	private, err := os.ReadFile(config.PrivateSecret)
-	if err != nil {
-		logrus.Panic(err.Error() + config.PrivateSecret + "--------")
-	}
-
-	public, err := os.ReadFile(config.PublicSecret)
-	if err != nil {
-		logrus.Panic(err.Error() + config.PublicSecret)
-	}
-
-	s.jwtPrivate, err = jwt.ParseRSAPrivateKeyFromPEM(private)
-	if err != nil {
-		logrus.Panic(err)
-	}
-
-	s.jwtPublic, err = jwt.ParseRSAPublicKeyFromPEM(public)
-	if err != nil {
-		logrus.Panic(err)
-	}
-}
-
-func (s *Server) genJWT(username string) (string, error) {
-
-	claims := jwt.MapClaims{
-		"username": username,
-		"iat":      time.Now().Unix(),
-		"exp":      time.Now().Add(time.Hour * 12).Unix(),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, claims)
-
-	signedToken, err := token.SignedString(s.jwtPrivate)
-	if err != nil {
-		return "", err
-	}
-
-	return signedToken, nil
-}
-
-func (s *Server) checkJwt(c *gin.Context) {
-
-	jwtSession := c.GetHeader("Auth")
-
-	token, err := jwt.Parse(jwtSession, func(token *jwt.Token) (interface{}, error) {
-		if alg, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
-		} else if alg != jwt.SigningMethodRS256 {
-			return nil, fmt.Errorf("signing method does not match: %v", token.Header["alg"])
-		}
-
-		return s.jwtPublic, nil
-	})
-
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	claims, claimsOk := token.Claims.(jwt.MapClaims)
-	if !claimsOk || !token.Valid {
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	username, ok := claims["username"].(string)
-	if !ok {
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	account, err := acc.GetAccountByUsername(s.db, username)
-	if err != nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	if account == nil {
-		c.AbortWithStatus(http.StatusUnauthorized)
-		return
-	}
-
-	c.Set("account", account)
+func (s *Server) InitJWTManager() {
+	s.jwtManager.InitDB(config.DB, config.DBDebug)
+	s.jwtManager.InitJWT(config.PrivateSecret, config.PublicSecret)
 }
